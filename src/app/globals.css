@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #020617;
+  --foreground: #f8fafc;
+  --font-geist-sans: "Inter", "Outfit", "ui-sans-serif", "system-ui", sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans);
+  @apply antialiased selection:bg-indigo-500/30 overflow-x-hidden;
 }
+
+@layer utilities {
+  .glass-card {
+    @apply bg-slate-900/40 backdrop-blur-xl border border-slate-800/50 shadow-2xl;
+  }
+  
+  .glass-card-hover {
+    @apply hover:bg-slate-800/60 hover:border-slate-700/80 transition-all duration-500 font-sans;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  }
+
+  /* Animated Orbs */
+  .orb {
+    @apply absolute rounded-full filter blur-[100px] opacity-15 pointer-events-none mix-blend-screen;
+    animation: orb-float 25s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
+  }
+
+  @keyframes orb-float {
+    0% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(5%, 10%) scale(1.1); }
+    66% { transform: translate(-3%, 15%) scale(0.95); }
+    100% { transform: translate(8%, -5%) scale(1.05); }
+  }
+}
+
