@@ -39,14 +39,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# private / internal — do not commit
+# IDE
+.vscode/
+.idea/
+
+# local development / internal notes
 JUDGING_CRITERIA.md
 CHANGELOG.md
 AGENTS.md
 test-models.ts
 tmp/
-ApplyAgent-Architecture.drawio
-
-# IDE
-.vscode/
-.idea/
+*.drawio
