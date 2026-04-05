@@ -58,7 +58,7 @@ export default async function Home() {
                     Go to Dashboard
                   </a>
                   <a
-                    href="/auth/logout"
+                    href="/api/auth/logout"
                     className="flex h-14 px-8 items-center justify-center rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-semibold text-lg transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-[0.98]"
                   >
                     Logout
@@ -67,7 +67,7 @@ export default async function Home() {
               </div>
             ) : (
               <a
-                href="/auth/login"
+                href="/api/auth/login"
                 className="flex h-16 sm:min-w-[240px] px-10 items-center justify-center rounded-2xl bg-black dark:bg-white text-white dark:text-black font-semibold text-xl transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-black/20"
               >
                 Log In to Start
