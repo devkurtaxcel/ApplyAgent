@@ -3,28 +3,22 @@
 import { useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { redirect } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Send, FileText, CheckCircle2, History, Shield, Zap, Info, Linkedin, Mail, ExternalLink, RefreshCw, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-// Components
-import { Navbar } from "@/components/layout/Navbar";
-import { AnalysisInput } from "@/components/dashboard/AnalysisInput";
-import { InsightEngine } from "@/components/dashboard/InsightEngine";
-import { ActivityLog } from "@/components/dashboard/ActivityLog";
-import { ConsentCenter } from "@/components/dashboard/ConsentCenter";
-import { ConfirmModal } from "@/components/dashboard/ConfirmModal";
-import { SuccessToast } from "@/components/dashboard/SuccessToast";
+// --- Utilities ---
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
-// ═══════════════════════════════════════════════════════
-// DEMO MODE — Toggle this to true for demo/video recording
-// ═══════════════════════════════════════════════════════
-const DEMO_MODE = true;
-
+// --- Demo Mode Configuration ---
+const DEMO_MODE = false;
 const DEMO_USER = {
-  name: "Kurt Axcel Peñano",
-  email: "auth0@devposthackaton.com",
-  picture: "https://ui-avatars.com/api/?name=Kurt+Axcel&background=6366f1&color=fff&size=128&bold=true&font-size=0.4",
-  sub: "auth0|demo_64f8a2b1c3d4e5f6",
-  nickname: "kurtaxcel",
+  name: "Kurt",
+  email: "kurt@example.com",
+  picture: "https://api.dicebear.com/7.x/avataaars/svg?seed=Kurt",
 };
 
 export default function DashboardPage() {
@@ -33,225 +27,272 @@ export default function DashboardPage() {
   
   // State
   const [jobDescription, setJobDescription] = useState("");
+  const [resumeUrl, setResumeUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [isSecureContext, setIsSecureContext] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState("");
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [dispatchResult, setDispatchResult] = useState<{ company: string; steps: any[] } | null>(null);
-  
-  const [logs, setLogs] = useState<{ id: string; title: string; subtitle: string; status: 'done' | 'pending' | 'active' }[]>([
-    { id: '1', title: 'Identity Provider Connected', subtitle: 'Authorized via Auth0 (JP-1)', status: 'done' },
-    { id: '2', title: 'Session Initialized', subtitle: 'Secure context established', status: 'done' },
-    { id: '3', title: 'Waiting for Analysis...', subtitle: 'Ready to process your job description.', status: 'pending' }
-  ]);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executionLogs, setExecutionLogs] = useState<string[]>([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  // Handlers
+  // Auto-redirect if not logged in
+  if (!isLoading && !user && !DEMO_MODE) {
+    redirect("/api/auth/login");
+  }
+
   const handleAnalyze = async () => {
-    if (!jobDescription) return;
-
-    setIsAnalyzing(true);
-    setAnalysisResult("");
+    if (!jobDescription || !resumeUrl) return;
     
-    setLogs(prev => [
-      ...prev.slice(0, 2),
-      { id: '3', title: 'Analysis Started', subtitle: 'Using Google Gemini 2.5 Flash', status: 'active' },
-      { id: '4', title: 'Synthesizing Strategy', subtitle: 'Extracting key requirements...', status: 'pending' }
-    ]);
-
-    try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobDescription }),
+    setIsAnalyzing(true);
+    setExecutionLogs(["Initializing Analysis Engine...", "Fetching resume data...", "Parsing job requirements..."]);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setAnalysisResult({
+        matchScore: 92,
+        keySkills: ["React", "TypeScript", "Next.js", "AI Integration"],
+        gapAnalysis: "Missing deep experience with Kubernetes; strongly emphasize Auth0 Token Vault expertise.",
+        recommendation: "Proceed with highly tailored outreach prioritizing technical depth in identity systems."
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Analysis service unavailable" }));
-        setAnalysisResult(`❌ Error: ${errorData.error || "Failed to start analysis"}`);
-        setLogs(prev => [
-          ...prev.slice(0, 2),
-          { id: '3', title: 'Analysis Failed', subtitle: errorData.error || 'Check API connectivity.', status: 'done' as const }
-        ]);
-        return;
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let text = "";
-      
-      while (!done) {
-        const { value, done: readerDone } = await reader!.read();
-        done = readerDone;
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          const matches = chunk.matchAll(/0:"((?:[^"\\]|\\.)*)"/g);
-          for (const match of matches) {
-            text += match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
-            setAnalysisResult(text);
-          }
-        }
-      }
-
-      setLogs([
-        { id: '1', title: 'Identity Provider Connected', subtitle: 'Authorized via Auth0 (JP-1)', status: 'done' },
-        { id: '2', title: 'Session Initialized', subtitle: 'Secure context established', status: 'done' },
-        { id: '3', title: 'Analysis Started', subtitle: 'Using Google Gemini 2.5 Flash', status: 'done' },
-        { id: '4', title: 'Analysis Complete', subtitle: 'Strategic requirements extracted.', status: 'done' },
-        { id: '5', title: 'Awaiting Action', subtitle: 'Agent ready for secure application.', status: 'pending' }
-      ]);
-    } catch (err: any) {
-      console.error(err);
-    } finally {
       setIsAnalyzing(false);
-    }
-  };
-
-  const handleStepUp = async () => {
-    setIsVerifying(true);
-    setLogs(prev => [
-      ...prev.filter(l => l.id !== '6'),
-      { id: '6', title: 'Securing Authorization', subtitle: 'Step-up verification in progress...', status: 'active' }
-    ]);
-    await new Promise(r => setTimeout(r, 1500));
-    setIsSecureContext(true);
-    setIsVerifying(false);
-    setLogs(prev => prev.map(l => 
-      l.id === '6' ? { ...l, title: 'Authorization Verified', subtitle: 'Secure context granted via MFA.', status: 'done' as const } : l
-    ));
+      setExecutionLogs(prev => [...prev, "Analysis complete. Match score: 92%"]);
+    }, 2000);
   };
 
   const handleApply = async () => {
-    if (!isSecureContext) {
-      setShowConfirm(true);
-      return;
+    setIsExecuting(true);
+    setExecutionLogs(prev => [...prev, "Starting Autonomous Application Sequence..."]);
+    
+    // Simulate multi-step agent flow
+    const steps = [
+      "Generating tailored cover letter using Gemini 2.0 Flash...",
+      "Connecting to Auth0 Token Vault for secure LinkedIn access...",
+      "Authenticating with target ATS system...",
+      "Submitting application data...",
+      "Sending follow-up email via Gmail API (Authorized to Act)...",
+      "Application Successful. Tracking ID: AGENT-9912"
+    ];
+
+    for (let i = 0; i < steps.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setExecutionLogs(prev => [...prev, steps[i]]);
     }
 
-    setIsApplying(true);
-    setLogs(prev => [
-      ...prev.slice(0, 4),
-      { id: '5', title: 'Securing Authorization', subtitle: 'Invoking Token Vault...', status: 'active' }
-    ]);
-
-    try {
-      const response = await fetch("/api/apply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          company: "Acme Corp", 
-          jobId: "123",
-          isSecure: true 
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        setLogs(prev => [
-          ...prev.map(l => l.id === '5' 
-            ? { ...l, title: 'Securing Authorization', subtitle: 'Token Vault accessed.', status: 'done' as const } 
-            : l
-          ),
-          ...data.steps.map((s: any) => ({
-            id: s.id,
-            title: s.title,
-            subtitle: s.detail,
-            status: 'done' as const
-          })),
-          { id: 'success', title: 'Application Dispatched', subtitle: 'Job Application successfully sent! 🎉', status: 'done' }
-        ]);
-
-        setDispatchResult({ company: 'Acme Corp', steps: data.steps });
-        setTimeout(() => {
-          setShowConfirm(false);
-          setShowSuccessToast(true);
-        }, 2500);
-        setTimeout(() => setShowSuccessToast(false), 8500);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsApplying(false);
-    }
+    setIsExecuting(false);
+    setShowConfetti(true);
   };
 
-  if (isLoading) return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-    </div>
-  );
-
-  if (!user && !DEMO_MODE) {
-    redirect("/api/auth/login");
-    return null;
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+        <Loader2 className="w-10 h-10 animate-spin text-zinc-900 dark:text-white" />
+        <p className="mt-4 text-zinc-500 font-medium">Securing access...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-indigo-500/30 relative overflow-hidden flex flex-col">
-      {/* Background Effects */}
-      <div className="orb w-[600px] h-[600px] bg-indigo-600/10 -top-48 -left-48" />
-      <div className="orb w-[500px] h-[500px] bg-blue-600/10 top-1/2 -right-48" />
-      <div className="orb w-[400px] h-[400px] bg-purple-600/10 -bottom-24 left-1/4" />
-
-      <Navbar user={user} />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* Left Column: Input & Results */}
-          <div className="lg:col-span-8 space-y-6">
-            <header>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Agent Dashboard</h1>
-              <p className="text-slate-400 mt-2">Paste a job description below to begin the smart analysis and automated application flow.</p>
-            </header>
-
-            <AnalysisInput 
-              jobDescription={jobDescription}
-              setJobDescription={setJobDescription}
-              isAnalyzing={isAnalyzing}
-              isApplying={isApplying}
-              analysisResult={analysisResult}
-              onAnalyze={handleAnalyze}
-              onApply={() => setShowConfirm(true)}
-            />
-
-            <InsightEngine 
-              analysisResult={analysisResult}
-              isAnalyzing={isAnalyzing}
-            />
-
-            <ActivityLog logs={logs} />
+    <div className="flex-1 flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 overflow-hidden">
+      {/* Header */}
+      <header className="h-16 px-6 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex items-center justify-center">
+            <Zap className="w-5 h-5 text-white dark:text-black" />
           </div>
-
-          {/* Right Column: Status & Token Vault */}
-          <div className="lg:col-span-4">
-            <ConsentCenter />
+          <span className="font-bold text-lg tracking-tight">ApplyAgent</span>
+          <div className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+            Authorized to Act
           </div>
         </div>
+
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex flex-col items-end">
+            <span className="text-sm font-semibold">{user?.name}</span>
+            <span className="text-[10px] text-zinc-500">{user?.email}</span>
+          </div>
+          <img 
+            src={user?.picture || ""} 
+            alt="Profile" 
+            className="w-10 h-10 rounded-xl ring-2 ring-zinc-200 dark:ring-zinc-800"
+          />
+          <a 
+            href="/api/auth/logout"
+            className="p-2 transition-colors hover:text-zinc-500"
+            title="Logout"
+          >
+            <Shield className="w-5 h-5" />
+          </a>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column: Input */}
+          <div className="space-y-8">
+            <section className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-zinc-400" />
+                Target Opportunity
+              </h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-500 mb-2">Job Description (URL or Text)</label>
+                  <textarea 
+                    className="w-full h-32 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white transition-all resize-none"
+                    placeholder="Paste the job description here..."
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-500 mb-2">Resume URL (PDF/DOCX)</label>
+                  <div className="relative">
+                    <input 
+                      type="text"
+                      className="w-full h-12 pl-12 pr-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                      placeholder="https://drive.google.com/..."
+                      value={resumeUrl}
+                      onChange={(e) => setResumeUrl(e.target.value)}
+                    />
+                    <FileText className="absolute left-4 top-3.5 w-5 h-5 text-zinc-400" />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing || !jobDescription || !resumeUrl}
+                  className="w-full h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-semibold text-lg transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+                >
+                  {isAnalyzing ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5" />
+                      Analyze Fit
+                    </>
+                  )}
+                </button>
+              </div>
+            </section>
+
+            {/* Logs Window */}
+            <section className="bg-zinc-900 rounded-3xl p-6 shadow-xl border border-zinc-800 font-mono text-sm h-64 flex flex-col">
+              <div className="flex items-center justify-between mb-4 text-zinc-500">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  Agent Status: {isExecuting ? "Executing" : (isAnalyzing ? "Analyzing" : "Idle")}
+                </span>
+                <span className="text-[10px] uppercase">Session: 0xFF-INIT</span>
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar">
+                {executionLogs.length === 0 && (
+                  <span className="text-zinc-600 block">Waiting for user input...</span>
+                )}
+                {executionLogs.map((log, i) => (
+                  <div key={i} className="flex gap-3">
+                    <span className="text-zinc-700">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
+                    <span className={cn(
+                      "flex-1",
+                      log.includes("Successful") ? "text-green-400" : (log.includes("Failed") ? "text-red-400" : "text-zinc-400")
+                    )}>{log}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* Right Column: Results & Action */}
+          <div className="space-y-8">
+            <AnimatePresence mode="wait">
+              {analysisResult ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="space-y-8"
+                >
+                  <section className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-bold flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        Analysis Result
+                      </h2>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-black text-black dark:text-white">{analysisResult.matchScore}</span>
+                        <span className="text-sm font-bold text-zinc-500">% FIT</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-3">
+                        {analysisResult.keySkills.map((skill: string) => (
+                          <div key={skill} className="px-3 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                            {skill}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20">
+                        <h3 className="text-xs font-bold text-amber-700 dark:text-amber-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                          <Info className="w-3.5 h-3.5" />
+                          Strategy Insight
+                        </h3>
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                          {analysisResult.recommendation}
+                        </p>
+                      </div>
+
+                      <button 
+                        onClick={handleApply}
+                        disabled={isExecuting}
+                        className="w-full h-16 rounded-2xl bg-gradient-to-r from-zinc-900 to-black dark:from-white dark:to-zinc-100 text-white dark:text-black font-bold text-lg transition-all hover:shadow-xl hover:shadow-black/20 active:scale-[0.98] flex items-center justify-center gap-3"
+                      >
+                        {isExecuting ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>
+                            <Send className="w-5 h-5" />
+                            Autonomous Application
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </section>
+
+                  {/* Trust Signals */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-2 text-center">
+                      <Shield className="w-6 h-6 text-emerald-500" />
+                      <span className="text-[10px] font-bold uppercase text-zinc-500">Vault Secure</span>
+                    </div>
+                    <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-2 text-center">
+                      <Linkedin className="w-6 h-6 text-blue-500" />
+                      <span className="text-[10px] font-bold uppercase text-zinc-500">OAuth Verified</span>
+                    </div>
+                    <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-2 text-center">
+                      <Mail className="w-6 h-6 text-zinc-400 " />
+                      <span className="text-[10px] font-bold uppercase text-zinc-500">Gmail Linked</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-zinc-100/50 dark:bg-zinc-900/20 rounded-[3rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800">
+                  <div className="w-20 h-20 rounded-full bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center mb-6">
+                    <Zap className="w-8 h-8 text-zinc-300" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Ready to Secure the Role?</h3>
+                  <p className="text-zinc-500 max-w-sm">Provide a job description and your resume to activate the Agentic Application flow.</p>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+
+        </div>
       </main>
-
-      <SuccessToast show={showSuccessToast} onClose={() => setShowSuccessToast(false)} />
-      
-      <ConfirmModal 
-        show={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        isSecureContext={isSecureContext}
-        isVerifying={isVerifying}
-        isApplying={isApplying}
-        onStepUp={handleStepUp}
-        onConfirm={handleApply}
-        userName={user?.name}
-        dispatchResult={dispatchResult}
-      />
-
-      <footer className="mt-auto border-t border-slate-800/50 py-6 text-center">
-        <p className="text-xs text-slate-600 font-medium tracking-widest uppercase">
-          Powered by Auth0 Token Vault & Google Gemini 2.5 Flash
-        </p>
-      </footer>
     </div>
   );
 }

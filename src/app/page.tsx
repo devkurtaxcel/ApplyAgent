@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { auth0 } from "@/lib/auth0";
+import { getAuth0 } from "@/lib/auth0";
 
 export default async function Home() {
+  const auth0 = getAuth0();
   const session = await auth0.getSession();
   const user = session?.user;
 
