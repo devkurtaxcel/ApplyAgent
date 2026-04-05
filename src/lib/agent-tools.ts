@@ -1,18 +1,40 @@
 import { getAccessTokenFromTokenVault } from "@auth0/ai/TokenVault";
 
+// ═══════════════════════════════════════════════════════
+// DEMO MODE — Set to true for demo/video recording
+// When enabled, tools return realistic mock tokens instead
+// of hitting the real Token Vault.
+// ═══════════════════════════════════════════════════════
+const DEMO_MODE = true;
+
+const MOCK_TOKENS = {
+  gmail: "ya29.a0ARrdaM_xk7Gf8Q2v...",
+  linkedin: "AQVkNjM4ZTU2YTRhYWNk...",
+};
+
 /**
  * SIMULATED GMAIL TOOL
  * Target Connection: google-oauth2
  */
 export async function sendGmailApplication(to: string, subject: string, body: string) {
-  // 1. Retrieve the scoped Gmail access token from the Token Vault
-  // In a real agentic workflow, the Authorizer would ensure the 'google-oauth2' context is active.
+  if (DEMO_MODE) {
+    console.log(`[Agent Tool: Gmail] DEMO MODE - Simulating secure dispatch to ${to}`);
+    return {
+      success: true,
+      service: "Gmail",
+      connection: "google-oauth2",
+      action: "Send Email",
+      details: `Application sent to ${to}`,
+      authorized: true,
+      tokenPreview: MOCK_TOKENS.gmail,
+    };
+  }
+
   try {
     const accessToken = await getAccessTokenFromTokenVault();
     
     console.log(`[Agent Tool: Gmail] Authorized via Token Vault (google-oauth2). Token Length: ${accessToken?.length || 0}`);
     
-    // 2. Simulate the API call
     return {
       success: true,
       service: "Gmail",
@@ -40,13 +62,24 @@ export async function sendGmailApplication(to: string, subject: string, body: st
  * Target Connection: linkedin
  */
 export async function updateLinkedInStatus(message: string) {
-  // 1. Retrieve the scoped LinkedIn access token from the Token Vault
+  if (DEMO_MODE) {
+    console.log(`[Agent Tool: LinkedIn] DEMO MODE - Simulating status update`);
+    return {
+      success: true,
+      service: "LinkedIn",
+      connection: "linkedin",
+      action: "Post Update",
+      details: "Profile activity updated with application status",
+      authorized: true,
+      tokenPreview: MOCK_TOKENS.linkedin,
+    };
+  }
+
   try {
     const accessToken = await getAccessTokenFromTokenVault();
     
     console.log(`[Agent Tool: LinkedIn] Authorized via Token Vault (linkedin). Token Length: ${accessToken?.length || 0}`);
     
-    // 2. Simulate the API call
     return {
       success: true,
       service: "LinkedIn",
@@ -68,4 +101,3 @@ export async function updateLinkedInStatus(message: string) {
     };
   }
 }
-
