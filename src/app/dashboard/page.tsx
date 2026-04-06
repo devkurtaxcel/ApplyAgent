@@ -33,6 +33,22 @@ export default function DashboardPage() {
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionLogs, setExecutionLogs] = useState<string[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [draftMessage, setDraftMessage] = useState("");
+  const [isApproved, setIsApproved] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
+
+  const handleReset = () => {
+    setJobDescription("");
+    setResumeUrl("");
+    setIsAnalyzing(false);
+    setAnalysisResult(null);
+    setIsExecuting(false);
+    setExecutionLogs([]);
+    setShowConfetti(false);
+    setDraftMessage("");
+    setIsApproved(false);
+    setIsApplied(false);
+  };
 
   // Auto-redirect if not logged in
   if (!isLoading && !user && !DEMO_MODE) {
@@ -53,6 +69,10 @@ export default function DashboardPage() {
         gapAnalysis: "Missing deep experience with Kubernetes; strongly emphasize Auth0 Token Vault expertise.",
         recommendation: "Proceed with highly tailored outreach prioritizing technical depth in identity systems."
       });
+      setDraftMessage(
+        `Dear Hiring Manager,\n\nI am thrilled to apply for this role. My expertise in React, TypeScript, and identity systems (specifically Auth0) aligns perfectly with your requirements. I am confident that my background in AI integration will contribute significantly to your team.\n\nLooking forward to speaking with you.\n\nBest regards,\n${user?.name || "Candidate"}`
+      );
+      setIsApproved(false);
       setIsAnalyzing(false);
       setExecutionLogs(prev => [...prev, "Analysis complete. Match score: 92%"]);
     }, 2000);
@@ -79,6 +99,7 @@ export default function DashboardPage() {
 
     setIsExecuting(false);
     setShowConfetti(true);
+    setIsApplied(true);
   };
 
   if (isLoading) {
@@ -99,8 +120,13 @@ export default function DashboardPage() {
             <Zap className="w-5 h-5 text-white dark:text-black" />
           </div>
           <span className="font-bold text-lg tracking-tight">ApplyAgent</span>
-          <div className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-            Authorized to Act
+          <div className={cn(
+            "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all",
+            isApplied 
+              ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
+              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+          )}>
+            {isApplied ? "Task Successful" : "Authorized to Act"}
           </div>
         </div>
 
@@ -130,53 +156,139 @@ export default function DashboardPage() {
           
           {/* Left Column: Input */}
           <div className="space-y-8">
-            <section className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-zinc-400" />
-                Target Opportunity
-              </h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-500 mb-2">Job Description (URL or Text)</label>
-                  <textarea 
-                    className="w-full h-32 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white transition-all resize-none"
-                    placeholder="Paste the job description here..."
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zinc-500 mb-2">Resume URL (PDF/DOCX)</label>
-                  <div className="relative">
-                    <input 
-                      type="text"
-                      className="w-full h-12 pl-12 pr-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
-                      placeholder="https://drive.google.com/..."
-                      value={resumeUrl}
-                      onChange={(e) => setResumeUrl(e.target.value)}
+            {!isApplied && (
+              <section className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-zinc-400" />
+                  Target Opportunity
+                </h2>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-500 mb-2">Job Description (URL or Text)</label>
+                    <textarea 
+                      className="w-full h-32 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white transition-all resize-none"
+                      placeholder="Paste the job description here..."
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
                     />
-                    <FileText className="absolute left-4 top-3.5 w-5 h-5 text-zinc-400" />
                   </div>
-                </div>
 
-                <button 
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing || !jobDescription || !resumeUrl}
-                  className="w-full h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-semibold text-lg transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
-                >
-                  {isAnalyzing ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Zap className="w-5 h-5" />
-                      Analyze Fit
-                    </>
-                  )}
-                </button>
-              </div>
-            </section>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-500 mb-2">Resume URL (PDF/DOCX)</label>
+                    <div className="relative">
+                      <input 
+                        type="text"
+                        className="w-full h-12 pl-12 pr-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                        placeholder="https://drive.google.com/..."
+                        value={resumeUrl}
+                        onChange={(e) => setResumeUrl(e.target.value)}
+                      />
+                      <FileText className="absolute left-4 top-3.5 w-5 h-5 text-zinc-400" />
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleAnalyze}
+                    disabled={isAnalyzing || !jobDescription || !resumeUrl}
+                    className="w-full h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-semibold text-lg transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+                  >
+                    {isAnalyzing ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Zap className="w-5 h-5" />
+                        Analyze Fit
+                      </>
+                    )}
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Success Overlay Portal-like logic */}
+            <AnimatePresence>
+              {isApplied && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                  {/* Backdrop */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-zinc-950/40 backdrop-blur-xl"
+                    onClick={handleReset}
+                  />
+                  
+                  {/* Modal Card */}
+                  <motion.section 
+                    initial={{ opacity: 0, scale: 0.8, y: 40 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 25 }}
+                    className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-emerald-500/20 border border-emerald-100 dark:border-emerald-900/40 text-center flex flex-col items-center gap-8 overflow-hidden"
+                  >
+                    {/* Glowing Aura Effect */}
+                    <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
+                    <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+                    <div className="relative">
+                      <div className="w-28 h-28 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shadow-inner">
+                        <CheckCircle2 className="w-14 h-14 text-emerald-500" />
+                      </div>
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="absolute -right-2 -top-2 bg-black dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-4 border-white dark:border-zinc-900 shadow-lg"
+                      >
+                        Authorized
+                      </motion.div>
+                    </div>
+
+                    <div>
+                      <h2 className="text-4xl font-black mb-3 tracking-tighter">Mission Accomplished</h2>
+                      <p className="text-zinc-500 font-medium px-4">
+                        Your application for this role has been successfully finalized and dispatched via your authorized tokens.
+                      </p>
+                    </div>
+
+                    <div className="w-full p-4 md:p-8 rounded-[2rem] bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 flex flex-col gap-5">
+                      <div className="flex justify-between items-center px-2">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Tracking Code</span>
+                        <code className="text-sm font-bold text-zinc-900 dark:text-white bg-zinc-200 dark:bg-zinc-800 px-3 py-1 rounded-lg">AGENT-9912</code>
+                      </div>
+                      <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
+                      <div className="flex justify-between items-center px-2">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Deliver Status</span>
+                        <div className="flex items-center gap-2 text-emerald-500 font-bold">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>Delivered</span>
+                        </div>
+                      </div>
+                      <div className="h-px bg-zinc-200 dark:bg-zinc-800" />
+                      <div className="flex justify-between items-center px-2">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Auth Channel</span>
+                        <span className="text-sm font-bold text-zinc-900 dark:text-white">Gmail + LinkedIn API</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 w-full gap-4">
+                      <button 
+                        onClick={handleReset}
+                        className="w-full h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black text-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-black/10 dark:shadow-white/5 flex items-center justify-center gap-3"
+                      >
+                        <RefreshCw className="w-6 h-6" />
+                        Apply for Next Role
+                      </button>
+                      <button className="w-full h-14 rounded-2xl bg-transparent border-2 border-zinc-100 dark:border-zinc-800 text-zinc-400 font-bold hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700 transition-all flex items-center justify-center gap-2">
+                        <History className="w-5 h-5" />
+                        Execution History
+                      </button>
+                    </div>
+                  </motion.section>
+                </div>
+              )}
+            </AnimatePresence>
 
             {/* Logs Window */}
             <section className="bg-zinc-900 rounded-3xl p-6 shadow-xl border border-zinc-800 font-mono text-sm h-64 flex flex-col">
@@ -236,26 +348,57 @@ export default function DashboardPage() {
                         ))}
                       </div>
 
-                      <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20">
-                        <h3 className="text-xs font-bold text-amber-700 dark:text-amber-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                          <Info className="w-3.5 h-3.5" />
-                          Strategy Insight
-                        </h3>
-                        <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                          {analysisResult.recommendation}
-                        </p>
+                      <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <FileText className="w-3.5 h-3.5" />
+                            Application Draft
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-zinc-400 font-medium">Human in the Loop</span>
+                            <RefreshCw className="w-3 h-3 text-zinc-400 animate-spin-slow" />
+                          </div>
+                        </div>
+                        <textarea
+                          value={draftMessage}
+                          onChange={(e) => setDraftMessage(e.target.value)}
+                          className="w-full h-40 p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white transition-all resize-none font-sans"
+                          placeholder="Application draft will appear here..."
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3 px-1">
+                        <button
+                          onClick={() => setIsApproved(!isApproved)}
+                          className={cn(
+                            "w-6 h-6 rounded-md border flex items-center justify-center transition-all",
+                            isApproved 
+                              ? "bg-black dark:bg-white border-black dark:border-white text-white dark:text-black" 
+                              : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+                          )}
+                        >
+                          {isApproved && <CheckCircle2 className="w-4 h-4" />}
+                        </button>
+                        <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+                          I have reviewed and <span className="text-black dark:text-white">Authorize to Act</span>
+                        </span>
                       </div>
 
                       <button 
                         onClick={handleApply}
-                        disabled={isExecuting}
-                        className="w-full h-16 rounded-2xl bg-gradient-to-r from-zinc-900 to-black dark:from-white dark:to-zinc-100 text-white dark:text-black font-bold text-lg transition-all hover:shadow-xl hover:shadow-black/20 active:scale-[0.98] flex items-center justify-center gap-3"
+                        disabled={isExecuting || !isApproved}
+                        className={cn(
+                          "w-full h-16 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3",
+                          isApproved 
+                            ? "bg-gradient-to-r from-zinc-900 to-black dark:from-white dark:to-zinc-100 text-white dark:text-black hover:shadow-xl hover:shadow-black/20" 
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:border-zinc-700"
+                        )}
                       >
                         {isExecuting ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                           <>
-                            <Send className="w-5 h-5" />
+                            <Send className={cn("w-5 h-5", isApproved ? "text-white dark:text-black" : "text-zinc-400")} />
                             Autonomous Application
                           </>
                         )}
