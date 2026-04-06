@@ -5,21 +5,21 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
 
 export const maxDuration = 30;
 
-export async function POST(req: Request) {
-  const session = await auth0.getSession();
-
-  if (!session) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const { jobDescription } = await req.json();
-
-  if (!jobDescription) {
-    return new Response("Job description is required", { status: 400 });
-  }
-
+export const POST = async (req: Request) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" }, { apiVersion: "v1" });
+    const session = await auth0.getSession();
+    
+    if (!session) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const { jobDescription } = await req.json();
+
+    if (!jobDescription) {
+      return new Response("Job description is required", { status: 400 });
+    }
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" }, { apiVersion: "v1" });
 
     const prompt = `You are an elite Job Application Agent. Analyze the provided job description and produce a professional strategic report in clean Markdown format.
 
@@ -68,11 +68,8 @@ ${jobDescription}`;
         "Transfer-Encoding": "chunked",
       },
     });
-  } catch (error: any) {
-    console.error("AI Analysis Error:", error);
-    return new Response(JSON.stringify({ error: error.message || "Failed to start AI stream" }), { 
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+  } catch (error) {
+    console.error('[Analyze Error]:', error);
+    return new Response(`[Analysis Failed]: ${error instanceof Error ? error.message : String(error)}`, { status: 500 });
   }
-}
+};
