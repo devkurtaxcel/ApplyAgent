@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { redirect } from "next/navigation";
-import { Loader2, Send, FileText, CheckCircle2, History, Shield, Zap, Info, Linkedin, Mail, ExternalLink, RefreshCw, XCircle } from "lucide-react";
+import { Loader2, Send, FileText, CheckCircle2, History, Shield, Zap, Info, Link, Mail, ExternalLink, RefreshCw, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -36,7 +36,7 @@ export default function DashboardPage() {
 
   // Auto-redirect if not logged in
   if (!isLoading && !user && !DEMO_MODE) {
-    redirect("/api/auth/login");
+    redirect("/auth/login");
   }
 
   const handleAnalyze = async () => {
@@ -115,7 +115,7 @@ export default function DashboardPage() {
             className="w-10 h-10 rounded-xl ring-2 ring-zinc-200 dark:ring-zinc-800"
           />
           <a 
-            href="/api/auth/logout"
+            href="/auth/logout"
             className="p-2 transition-colors hover:text-zinc-500"
             title="Logout"
           >
@@ -270,7 +270,7 @@ export default function DashboardPage() {
                       <span className="text-[10px] font-bold uppercase text-zinc-500">Vault Secure</span>
                     </div>
                     <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-2 text-center">
-                      <Linkedin className="w-6 h-6 text-blue-500" />
+                      <Link className="w-6 h-6 text-blue-500" />
                       <span className="text-[10px] font-bold uppercase text-zinc-500">OAuth Verified</span>
                     </div>
                     <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-2 text-center">
