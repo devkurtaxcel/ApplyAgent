@@ -28,6 +28,18 @@ export default function DashboardPage() {
   // State
   const [jobDescription, setJobDescription] = useState("");
   const [resumeUrl, setResumeUrl] = useState("");
+  const wordCount = jobDescription.trim() ? jobDescription.trim().split(/\s+/).length : 0;
+  const isOverLimit = wordCount > 500;
+  
+  const isValidUrl = (str: string) => {
+    try {
+      new URL(str);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const isInvalidResumeUrl = resumeUrl.trim() !== "" && !isValidUrl(resumeUrl);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -157,11 +169,26 @@ export default function DashboardPage() {
           {/* Left Column: Input */}
           <div className="space-y-8">
             {!isApplied && (
-              <section className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-zinc-200 dark:border-zinc-800">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-zinc-400" />
-                  Target Opportunity
-                </h2>
+              <section className={cn("bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border transition-all duration-300", isOverLimit ? "border-red-500/50 shadow-red-500/10" : "border-zinc-200 dark:border-zinc-800")}>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-zinc-400" />
+                    Target Opportunity
+                  </h2>
+                  <span className={cn("text-xs font-mono px-2 py-1 rounded border transition-colors", isOverLimit ? "text-red-500 border-red-500/20 bg-red-500/10 animate-pulse" : "text-zinc-500 border-zinc-200 dark:border-zinc-800")}>
+                    {wordCount} / 500 words
+                  </span>
+                </div>
+                
+                {isOverLimit && (
+                  <div className="mb-6 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl px-4 py-3 flex items-start gap-3 animate-in slide-in-from-top-2">
+                    <Zap className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5 animate-pulse" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-red-600 dark:text-red-400">Security Limit Exceeded</span>
+                      <span className="text-xs text-red-500/80">Payload must be under 500 words to prevent context window exhaustion attacks on the Gemini API.</span>
+                    </div>
+                  </div>
+                )}
                 
                 <div className="space-y-6">
                   <div>
@@ -175,30 +202,36 @@ export default function DashboardPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-zinc-500 mb-2">Resume URL (PDF/DOCX)</label>
+                    <label className="block text-sm font-medium text-zinc-500 mb-2">Resume URL</label>
                     <div className="relative">
                       <input 
                         type="text"
-                        className="w-full h-12 pl-12 pr-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+                        className={cn("w-full h-12 pl-12 pr-4 rounded-xl border focus:ring-2 transition-all bg-zinc-50 dark:bg-zinc-950", isInvalidResumeUrl ? "border-red-500 focus:ring-red-500 text-red-500" : "border-zinc-200 dark:border-zinc-800 focus:ring-black dark:focus:ring-white")}
                         placeholder="https://drive.google.com/..."
                         value={resumeUrl}
                         onChange={(e) => setResumeUrl(e.target.value)}
                       />
-                      <FileText className="absolute left-4 top-3.5 w-5 h-5 text-zinc-400" />
+                      <FileText className={cn("absolute left-4 top-3.5 w-5 h-5", isInvalidResumeUrl ? "text-red-400" : "text-zinc-400")} />
                     </div>
+                    {isInvalidResumeUrl && <p className="text-xs text-red-500 mt-2 flex items-center gap-1"><XCircle className="w-3 h-3" /> Please enter a valid URL</p>}
                   </div>
 
                   <button 
                     onClick={handleAnalyze}
-                    disabled={isAnalyzing || !jobDescription || !resumeUrl}
-                    className="w-full h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-semibold text-lg transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+                    disabled={isAnalyzing || !jobDescription || !resumeUrl || isOverLimit || isInvalidResumeUrl}
+                    className={cn(
+                      "w-full h-14 rounded-2xl font-semibold text-lg transition-all flex items-center justify-center gap-2",
+                      (isOverLimit || isInvalidResumeUrl)
+                        ? "bg-red-50 dark:bg-red-500/10 text-red-400 cursor-not-allowed border border-red-100 dark:border-red-500/20"
+                        : "bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+                    )}
                   >
                     {isAnalyzing ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
                         <Zap className="w-5 h-5" />
-                        Analyze Fit
+                        {isOverLimit ? "Payload Limit Exceeded" : isInvalidResumeUrl ? "Invalid Resume URL" : "Analyze Fit"}
                       </>
                     )}
                   </button>
