@@ -1,6 +1,16 @@
 import Image from "next/image";
 import { auth0 } from "@/lib/auth0";
 
+/**
+ * APPLYAGENT: MAIN ORCHESTRATION HUB
+ * 
+ * This component manages the state transitions of the AI agent:
+ * - Idle: User enters job and resume data.
+ * - Analyzing: Gemini analyzes the "Job Fit" and creates an implementation plan.
+ * - Review: Human-in-the-Loop gatekeeper where the user reviews the draft.
+ * - Applying: Autonomous execution of the plan (Authorized via Token Vault).
+ * - Completed: Celebratory high-fidelity success state.
+ */
 export default async function Home() {
   const session = await auth0.getSession();
   const user = session?.user;
