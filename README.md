@@ -6,6 +6,8 @@
 
 ### 🌐 [Live Demo](https://auth0applyagent.vercel.app)
 
+> **Note on Demo Implementation**: This repository serves as a prototype and demonstration of the "Authorized to Act" concept. The Job Application Fit Analysis currently utilizes **mock data** (simulated responses) in the UI to demonstrate the core user experience and flow.
+
 ---
 
 ## 🛠️ The Architecture: How It Works
