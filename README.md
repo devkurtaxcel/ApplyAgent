@@ -19,7 +19,7 @@ Traditional AI agents struggle because they either:
 graph TD
     User((User)) -->|Auth0 Login| SDK[Next.js Auth0 v4 SDK]
     SDK -->|OAuth Scopes: email, gmail.send| TV[Auth0 Token Vault]
-    User -->|Prompts & Resume| AI[Gemini 1.5 Pro]
+    User -->|Prompts & Resume| AI[Gemini 2.5 Flash Lite]
     AI -->|Drafts Application| Review[Human Review Section]
     Review -->|Authorize Action Checkbox| Exec[Agent Action Handler]
     Exec -->|Calls API| TV

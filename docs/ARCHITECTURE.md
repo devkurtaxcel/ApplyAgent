@@ -52,7 +52,7 @@ We use the latest **Auth0 v4 SDK**, which shifts from an API Route approach to a
 ---
 
 ## 🏗️ Technical Stack Details
-- **LLM**: Gemini 1.5 Pro (via Google AI SDK).
+- **LLM**: Gemini 2.5 Flash Lite (via Google AI SDK).
 - **Session Management**: Auth0 SDK v4 (Client & Server components).
 - **State Management**: Next.js 19 React Hooks (Suspense & Action states).
 - **UI Architecture**: Tailwind CSS 4 + Framer Motion (Spring Physics for celebratory overlays).
