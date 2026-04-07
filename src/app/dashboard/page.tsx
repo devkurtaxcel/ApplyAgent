@@ -40,8 +40,10 @@ export default function DashboardPage() {
     }
   };
   const isInvalidResumeUrl = resumeUrl.trim() !== "" && !isValidUrl(resumeUrl);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionLogs, setExecutionLogs] = useState<string[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -52,8 +54,8 @@ export default function DashboardPage() {
   const handleReset = () => {
     setJobDescription("");
     setResumeUrl("");
-    setIsAnalyzing(false);
     setAnalysisResult(null);
+    setIsAnalyzing(false);
     setIsExecuting(false);
     setExecutionLogs([]);
     setShowConfetti(false);
@@ -68,7 +70,7 @@ export default function DashboardPage() {
   }
 
   const handleAnalyze = async () => {
-    if (!jobDescription || !resumeUrl) return;
+    if (!jobDescription || !resumeUrl || isInvalidResumeUrl || isOverLimit) return;
     
     setIsAnalyzing(true);
     setExecutionLogs(["Initializing Analysis Engine...", "Fetching resume data...", "Parsing job requirements..."]);
