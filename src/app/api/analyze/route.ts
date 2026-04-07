@@ -24,7 +24,7 @@ export const POST = async (req: Request) => {
       return new Response("Job description exceeds the maximum length of 500 words", { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" }, { apiVersion: "v1" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: "v1beta" });
 
     const prompt = `You are an elite Job Application Agent. You have ONE strict underlying protocol: Analyze the provided job description within the <job_description> tags and produce a professional strategic report.
 
