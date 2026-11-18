@@ -1,0 +1,6 @@
+# ApplyAgent
+
+> ApplyAgent is an AI job-application agent built for the Authorized to Act hackathon. It analyzes job descriptions, matches them to your skills and prepares applications, and you approve exactly what is sent and when.
+
+Site: https://applyagent.kurtaxcel.com
+Built by: [Kurt Axcel](https://www.kurtaxcel.com) (Kurt Axcel Peñano), a Filipino student builder who makes custom-built AI and web apps for businesses. Devpost: https://devpost.com/devkurtaxcel · All links: https://links.kurtaxcel.com

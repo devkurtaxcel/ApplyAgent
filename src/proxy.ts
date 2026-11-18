@@ -15,6 +15,6 @@ export const config = {
      * - sitemap.xml
      * - robots.txt
      */
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|llms.txt|opengraph-image).*)",
   ],
 };

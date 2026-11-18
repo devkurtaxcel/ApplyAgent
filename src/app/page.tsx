@@ -116,7 +116,15 @@ export default async function Home() {
 
       <footer className="w-full py-8 px-12 border-t border-zinc-200 dark:border-zinc-800 text-center sm:text-left z-10 bg-white/50 dark:bg-black/50 backdrop-blur-sm">
         <p className="text-sm text-zinc-500 dark:text-zinc-600">
-          Built for the <span className="font-semibold text-zinc-900 dark:text-zinc-300">Authorized to Act</span> Hackathon.
+          Built for the <span className="font-semibold text-zinc-900 dark:text-zinc-300">Authorized to Act</span> Hackathon
+          {" "}by{" "}
+          <a href="https://www.kurtaxcel.com" className="font-semibold text-zinc-900 hover:underline dark:text-zinc-300">
+            Kurt Axcel
+          </a>
+          .{" "}
+          <a href="https://links.kurtaxcel.com" className="hover:underline">
+            All links
+          </a>
         </p>
       </footer>
     </div>
